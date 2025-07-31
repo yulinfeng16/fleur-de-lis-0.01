@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三元标量场可视化</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@9.5.0/lib/browser/math.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1a4e, #1c2b6b, #2a3a8c);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 12px 16px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+        
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        #visualization {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            background: rgba(20, 30, 70, 0.9);
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 -3px 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        
+        .formula-input {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        #function-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid rgba(74, 111, 203, 0.5);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        #function-input:focus {
+            border-color: #4a6fcb;
+            background: rgba(255, 255, 255, 0.18);
+            box-shadow: 0 0 10px rgba(74, 111, 203, 0.5);
+        }
+        
+        #function-input::placeholder {
+            color: rgba(200, 210, 255, 0.6);
+        }
+        
+        #visualize-btn {
+            background: linear-gradient(to right, #4a6fcb, #5a7fdb);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 0 20px;
+            margin-left: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        #visualize-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sliders {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+        
+        .slider-label {
+            width: 100px;
+            font-size: 0.9rem;
+            color: #a0b0ff;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 20px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #2a3a8c, #4a6fcb);
+            border-radius: 10px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 8px rgba(100, 150, 255, 0.8);
+            cursor: pointer;
+        }
+        
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+            background: rgba(74, 111, 203, 0.3);
+            padding: 2px 6px;
+            border-radius: 5px;
+            margin-left: 8px;
+        }
+        
+        .presets {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .preset-btn {
+            background: linear-gradient(to right, #3a4a8c, #4a6fcb);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 10px 5px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .preset-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            max-width: 65%;
+            z-index: 5;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 25px 35px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 20;
+            display: none;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(74, 111, 203, 0.5);
+            box-shadow: 0 0 20px rgba(74, 111, 203, 0.5);
+        }
+        
+        .spinner {
+            border: 4px solid rgba(74, 111, 203, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #4a6fcb;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            z-index: 5;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+            
+            .controls {
+                width: 320px;
+                border-radius: 0;
+                max-height: none;
+            }
+            
+            .presets {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>三元标量场可视化工具</h1>
+        <div class="subtitle">输入函数 f(x, y, z) 探索三维标量场</div>
+    </div>
+    
+    <div class="container">
+        <div id="visualization">
+            <div id="canvas-container"></div>
+            <div class="instructions">
+                👆 单指拖动旋转视图<br>
+                ✌️ 双指缩放调整大小<br>
+                ✌️ 双指拖动平移视图
+            </div>
+            <div class="status" id="status">准备就绪</div>
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>正在计算场函数...</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="formula-input">
+                <input type="text" id="function-input" placeholder="输入 f(x,y,z) 例如：x*x + y*y + z*z" value="sin(x) * cos(y) + sin(z) * 0.5">
+                <button id="visualize-btn">可视化</button>
+            </div>
+            
+            <div class="sliders">
+                <div class="slider-container">
+                    <div class="slider-label">等值面阈值:</div>
+                    <input type="range" min="-2" max="2" step="0.05" value="0.0" class="slider" id="threshold-slider">
+                    <div class="slider-value" id="threshold-value">0.0</div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">分辨率:</div>
+                    <input type="range" min="16" max="48" step="8" value="32" class="slider" id="resolution-slider">
+                    <div class="slider-value" id="resolution-value">32</div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">点大小:</div>
+                    <input type="range" min="0.5" max="5" step="0.1" value="2.0" class="slider" id="size-slider">
+                    <div class="slider-value" id="size-value">2.0</div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">色彩强度:</div>
+                    <input type="range" min="0" max="2" step="0.1" value="1.0" class="slider" id="color-slider">
+                    <div class="slider-value" id="color-value">1.0</div>
+                </div>
+            </div>
+            
+            <div class="presets">
+                <button class="preset-btn" data-fn="x*x + y*y + z*z">球体 (x²+y²+z²)</button>
+                <button class="preset-btn" data-fn="sin(x) * cos(y) + sin(z)">正弦波</button>
+                <button class="preset-btn" data-fn="x*y*z">双曲面 (xyz)</button>
+                <button class="preset-btn" data-fn="Math.sin(5*x) + Math.cos(5*y) + Math.sin(5*z)">复杂波形</button>
+                <button class="preset-btn" data-fn="x*y + y*z + z*x">马鞍面</button>
+                <button class="preset-btn" data-fn="Math.exp(-(x*x + y*y + z*z)/5)">高斯分布</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化Three.js场景
+        let scene, camera, renderer, controls;
+        let pointCloud = null;
+        let isCalculating = false;
+        
+        // 可视化参数
+        const params = {
+            threshold: 0.0,
+            resolution: 32,
+            pointSize: 2.0,
+            colorIntensity: 1.0,
+            size: 5.0
+        };
+        
+        // 更新状态信息
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+        
+        // 初始化场景
+        function init() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a2a);
+            scene.fog = new THREE.Fog(0x0a0a2a, 15, 25);
+            
+            // 创建相机
+            const container = document.getElementById('canvas-container');
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(8, 8, 8);
+            camera.lookAt(0, 0, 0);
+            
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 限制像素比
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // 添加轨道控制
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.1;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 5;
+            controls.maxDistance = 30;
+            
+            // 添加光源
+            const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight1.position.set(1, 1, 1);
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.75);
+            directionalLight2.position.set(-1, -1, -1);
+            scene.add(directionalLight2);
+            
+            // 添加坐标轴辅助
+            const axesHelper = new THREE.AxesHelper(6);
+            scene.add(axesHelper);
+            
+            // 添加网格地面
+            const gridHelper = new THREE.GridHelper(10, 10, 0x444488, 0x222266);
+            gridHelper.position.y = -params.size;
+            scene.add(gridHelper);
+            
+            // 初始化标量场
+            visualizeField();
+            
+            // 添加事件监听器
+            setupEventListeners();
+            
+            // 开始动画循环
+            animate();
+            
+            updateStatus("场景已初始化");
+        }
+        
+        // 设置事件监听
+        function setupEventListeners() {
+            // 可视化按钮
+            document.getElementById('visualize-btn').addEventListener('click', visualizeField);
+            
+            // 滑块事件
+            document.getElementById('threshold-slider').addEventListener('input', function(e) {
+                params.threshold = parseFloat(e.target.value);
+                document.getElementById('threshold-value').textContent = params.threshold.toFixed(2);
+                if (pointCloud) {
+                    pointCloud.material.uniforms.threshold.value = params.threshold;
+                    updateStatus(`阈值更新: ${params.threshold.toFixed(2)}`);
+                }
+            });
+            
+            document.getElementById('resolution-slider').addEventListener('input', function(e) {
+                params.resolution = parseInt(e.target.value);
+                document.getElementById('resolution-value').textContent = params.resolution;
+                visualizeField();
+            });
+            
+            document.getElementById('size-slider').addEventListener('input', function(e) {
+                params.pointSize = parseFloat(e.target.value);
+                document.getElementById('size-value').textContent = params.pointSize.toFixed(1);
+                if (pointCloud) {
+                    pointCloud.material.uniforms.pointSize.value = params.pointSize;
+                    updateStatus(`点大小更新: ${params.pointSize.toFixed(1)}`);
+                }
+            });
+            
+            document.getElementById('color-slider').addEventListener('input', function(e) {
+                params.colorIntensity = parseFloat(e.target.value);
+                document.getElementById('color-value').textContent = params.colorIntensity.toFixed(1);
+                if (pointCloud) {
+                    pointCloud.material.uniforms.colorIntensity.value = params.colorIntensity;
+                    updateStatus(`色彩强度更新: ${params.colorIntensity.toFixed(1)}`);
+                }
+            });
+            
+            // 预设函数按钮
+            const presetButtons = document.querySelectorAll('.preset-btn');
+            presetButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    document.getElementById('function-input').value = this.dataset.fn;
+                    updateStatus(`加载预设: ${this.dataset.fn}`);
+                    visualizeField();
+                });
+            });
+            
+            // 窗口大小调整
+            window.addEventListener('resize', onWindowResize);
+            
+            // 输入框回车键支持
+            document.getElementById('function-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    visualizeField();
+                }
+            });
+        }
+        
+        // 窗口大小调整处理
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+        
+        // 可视化标量场
+        function visualizeField() {
+            if (isCalculating) return;
+            
+            const functionString = document.getElementById('function-input').value.trim();
+            if (!functionString) return;
+            
+            // 显示加载指示器
+            showLoading(true);
+            updateStatus("计算场函数中...");
+            
+            // 清除现有的点云
+            if (pointCloud) {
+                scene.remove(pointCloud);
+                pointCloud.geometry.dispose();
+                pointCloud.material.dispose();
+                pointCloud = null;
+            }
+            
+            // 使用setTimeout避免阻塞UI
+            setTimeout(() => {
+                try {
+                    // 解析函数
+                    const compiledFn = math.compile(functionString);
+                    
+                    // 创建点云几何体
+                    const geometry = new THREE.BufferGeometry();
+                    
+                    // 生成顶点数据和颜色
+                    const positions = [];
+                    const colors = [];
+                    const values = []; // 存储场值
+                    const size = params.size;
+                    const resolution = params.resolution;
+                    const halfSize = size / 2;
+                    const delta = size / (resolution - 1);
+                    
+                    // 计算每个点的场值
+                    for (let x = 0; x < resolution; x++) {
+                        const px = -halfSize + x * delta;
+                        for (let y = 0; y < resolution; y++) {
+                            const py = -halfSize + y * delta;
+                            for (let z = 0; z < resolution; z++) {
+                                const pz = -halfSize + z * delta;
+                                
+                                // 计算场值
+                                const value = compiledFn.evaluate({x: px, y: py, z: pz});
+                                
+                                // 添加顶点位置
+                                positions.push(px, py, pz);
+                                values.push(value);
+                                
+                                // 计算颜色（基于值）
+                                const normalizedValue = (value + 2) / 4; // 映射到0-1范围
+                                const r = Math.min(1.0, Math.max(0, normalizedValue * 1.5));
+                                const g = Math.min(1.0, Math.max(0, (1 - Math.abs(normalizedValue - 0.5) * 2) * 1.2));
+                                const b = Math.min(1.0, Math.max(0, (1 - normalizedValue) * 1.5));
+                                colors.push(r, g, b);
+                            }
+                        }
+                    }
+                    
+                    // 设置几何体属性
+                    // 在创建几何体时确保传递所有必要属性
+geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+geometry.setAttribute('color1', new THREE.Float32BufferAttribute(colors, 3));
+geometry.setAttribute('value', new THREE.Float32BufferAttribute(values, 1));  // 添加这个
+                    
+                    // 创建自定义着色器材质
+                    const material = new THREE.ShaderMaterial({
+                        uniforms: {
+                            threshold: { value: params.threshold },
+                            pointSize: { value: params.pointSize },
+                            colorIntensity: { value: params.colorIntensity }
+                        },
+                        vertexShader: `
+                            uniform float pointSize;
+                            attribute vec3 color1;
+                            attribute float value;
+                            varying vec3 vColor;
+                            varying float vValue;
+                            
+                            void main() {
+                                vValue = value;
+                                vColor = color1;
+                                
+                                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                                gl_PointSize = pointSize;
+                                gl_Position = projectionMatrix * mvPosition;
+                            }
+                        `,
+                        fragmentShader: `
+                            uniform float threshold;
+                            uniform float colorIntensity;
+                            varying vec3 vColor;
+                            varying float vValue;
+                            
+                            void main() {
+                                // 显示阈值附近的点
+                                if (abs(vValue - threshold) > 0.5) discard;
+                                
+                                gl_FragColor = vec4(vColor * colorIntensity, 1.0);
+                                
+                                // 添加圆点效果
+                                vec2 coord = gl_PointCoord - vec2(0.5);
+                                if (length(coord) > 0.5) discard;
+                            }
+                        `,
+                        vertexColors: true,
+                        transparent: true,
+                        depthTest: true
+                    });
+                    
+                    // 创建点云
+                    pointCloud = new THREE.Points(geometry, material);
+                    scene.add(pointCloud);
+                    
+                    showLoading(false);
+                    updateStatus(`已渲染: ${resolution}³ 点 | ${functionString}`);
+                } catch (error) {
+                    showLoading(false);
+                    updateStatus("错误: " + error.message);
+                    console.error(error);
+                }
+            }, 100);
+        }
+        
+        // 显示/隐藏加载指示器
+        function showLoading(show) {
+            isCalculating = show;
+            document.querySelector('.loading').style.display = show ? 'block' : 'none';
+        }
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
