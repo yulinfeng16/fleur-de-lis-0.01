@@ -14,7 +14,6 @@
             box-sizing: border-box;
             touch-action: none;
         }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f1a4e, #1c2b6b, #2a3a8c);
@@ -24,7 +23,6 @@
             display: flex;
             flex-direction: column;
         }
-        
         .header {
             padding: 12px 16px;
             text-align: center;
@@ -33,37 +31,31 @@
             z-index: 10;
             backdrop-filter: blur(5px);
         }
-        
         h1 {
             font-size: 1.4rem;
             margin-bottom: 6px;
             letter-spacing: 1px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
-        
         .subtitle {
             font-size: 0.85rem;
             opacity: 0.8;
         }
-        
         .container {
             display: flex;
             flex-direction: column;
             flex: 1;
             overflow: hidden;
         }
-        
         #visualization {
             flex: 1;
             position: relative;
             overflow: hidden;
         }
-        
         #canvas-container {
             width: 100%;
             height: 100%;
         }
-        
         .controls {
             background: rgba(20, 30, 70, 0.9);
             padding: 15px;
@@ -73,12 +65,10 @@
             max-height: 50vh;
             overflow-y: auto;
         }
-        
         .formula-input {
             display: flex;
             margin-bottom: 15px;
         }
-        
         #function-input {
             flex: 1;
             padding: 12px 15px;
@@ -90,17 +80,14 @@
             outline: none;
             transition: all 0.3s;
         }
-        
         #function-input:focus {
             border-color: #4a6fcb;
             background: rgba(255, 255, 255, 0.18);
             box-shadow: 0 0 10px rgba(74, 111, 203, 0.5);
         }
-        
         #function-input::placeholder {
             color: rgba(200, 210, 255, 0.6);
         }
-        
         #visualize-btn {
             background: linear-gradient(to right, #4a6fcb, #5a7fdb);
             color: white;
@@ -113,19 +100,16 @@
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
-        
         #visualize-btn:active {
             transform: translateY(2px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-        
         .sliders {
             display: flex;
             flex-direction: column;
             gap: 12px;
             margin-top: 15px;
         }
-        
         .slider-container {
             display: flex;
             align-items: center;
@@ -133,13 +117,11 @@
             padding: 8px 12px;
             border-radius: 10px;
         }
-        
         .slider-label {
             width: 100px;
             font-size: 0.9rem;
             color: #a0b0ff;
         }
-        
         .slider {
             flex: 1;
             height: 20px;
@@ -148,7 +130,6 @@
             border-radius: 10px;
             outline: none;
         }
-        
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 24px;
@@ -158,7 +139,6 @@
             box-shadow: 0 0 8px rgba(100, 150, 255, 0.8);
             cursor: pointer;
         }
-        
         .slider-value {
             width: 40px;
             text-align: center;
@@ -168,14 +148,12 @@
             border-radius: 5px;
             margin-left: 8px;
         }
-        
         .presets {
             margin-top: 15px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
         }
-        
         .preset-btn {
             background: linear-gradient(to right, #3a4a8c, #4a6fcb);
             color: white;
@@ -187,12 +165,10 @@
             transition: all 0.2s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
-        
         .preset-btn:active {
             transform: translateY(2px);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
-        
         .instructions {
             position: absolute;
             bottom: 10px;
@@ -206,7 +182,6 @@
             backdrop-filter: blur(2px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
         .loading {
             position: absolute;
             top: 50%;
@@ -222,7 +197,6 @@
             border: 1px solid rgba(74, 111, 203, 0.5);
             box-shadow: 0 0 20px rgba(74, 111, 203, 0.5);
         }
-        
         .spinner {
             border: 4px solid rgba(74, 111, 203, 0.3);
             border-radius: 50%;
@@ -232,12 +206,10 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
         .status {
             position: absolute;
             top: 10px;
@@ -250,18 +222,67 @@
             backdrop-filter: blur(2px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .toggle-label {
+            font-size: 0.9rem;
+            color: #a0b0ff;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #2a3a8c;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-toggle {
+            background-color: #4a6fcb;
+        }
+        input:checked + .slider-toggle:before {
+            transform: translateX(26px);
+        }
         @media (min-width: 768px) {
             .container {
                 flex-direction: row;
             }
-            
             .controls {
                 width: 320px;
                 border-radius: 0;
                 max-height: none;
             }
-            
             .presets {
                 grid-template-columns: repeat(1, 1fr);
             }
@@ -273,7 +294,6 @@
         <h1>三元标量场可视化工具</h1>
         <div class="subtitle">输入函数 f(x, y, z) 探索三维标量场，显示出点云的部分与阈值相差不超0.5，值相对大小由颜色标示。</div>
     </div>
-    
     <div class="container">
         <div id="visualization">
             <div id="canvas-container"></div>
@@ -288,39 +308,47 @@
                 <div>正在计算场函数...</div>
             </div>
         </div>
-        
         <div class="controls">
             <div class="formula-input">
                 <input type="text" id="function-input" placeholder="输入 f(x,y,z) 例如：x*x + y*y + z*z" value="sin(x) * cos(y) + sin(z) * 0.5">
                 <button id="visualize-btn">可视化</button>
             </div>
-            
+            <div class="toggle-container">
+                <span class="toggle-label">显示点云</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="show-points-toggle" checked>
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+            <div class="toggle-container">
+                <span class="toggle-label">显示等值面</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="show-surface-toggle">
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
             <div class="sliders">
                 <div class="slider-container">
                     <div class="slider-label">等值面阈值:</div>
                     <input type="range" min="-2" max="2" step="0.05" value="0.0" class="slider" id="threshold-slider">
                     <div class="slider-value" id="threshold-value">0.0</div>
                 </div>
-                
                 <div class="slider-container">
                     <div class="slider-label">分辨率:</div>
                     <input type="range" min="16" max="48" step="8" value="32" class="slider" id="resolution-slider">
                     <div class="slider-value" id="resolution-value">32</div>
                 </div>
-                
                 <div class="slider-container">
                     <div class="slider-label">点大小:</div>
                     <input type="range" min="0.5" max="5" step="0.1" value="2.0" class="slider" id="size-slider">
                     <div class="slider-value" id="size-value">2.0</div>
                 </div>
-                
                 <div class="slider-container">
                     <div class="slider-label">色彩强度:</div>
                     <input type="range" min="0" max="2" step="0.1" value="1.0" class="slider" id="color-slider">
                     <div class="slider-value" id="color-value">1.0</div>
                 </div>
             </div>
-            
             <div class="presets">
                 <button class="preset-btn" data-fn="x*x + y*y + z*z">球体 (x²+y²+z²)</button>
                 <button class="preset-btn" data-fn="sin(x) * cos(y) + sin(z)">正弦波</button>
@@ -331,12 +359,15 @@
             </div>
         </div>
     </div>
-
     <script>
         // 初始化Three.js场景
         let scene, camera, renderer, controls;
         let pointCloud = null;
         let isCalculating = false;
+        let surfaceMesh = null;
+        let fieldData = null;
+        let showPoints = true;
+        let showSurface = false;
         
         // 可视化参数
         const params = {
@@ -417,6 +448,26 @@
             // 可视化按钮
             document.getElementById('visualize-btn').addEventListener('click', visualizeField);
             
+            // 显示点云切换
+            document.getElementById('show-points-toggle').addEventListener('change', function(e) {
+                showPoints = e.target.checked;
+                if (pointCloud) {
+                    pointCloud.visible = showPoints;
+                }
+                updateStatus(`点云显示: ${showPoints ? '开启' : '关闭'}`);
+            });
+            
+            // 显示等值面切换
+            document.getElementById('show-surface-toggle').addEventListener('change', function(e) {
+                showSurface = e.target.checked;
+                if (surfaceMesh) {
+                    surfaceMesh.visible = showSurface;
+                } else if (showSurface && fieldData) {
+                    updateSurfaceMesh();
+                }
+                updateStatus(`等值面显示: ${showSurface ? '开启' : '关闭'}`);
+            });
+            
             // 滑块事件
             document.getElementById('threshold-slider').addEventListener('input', function(e) {
                 params.threshold = parseFloat(e.target.value);
@@ -424,6 +475,9 @@
                 if (pointCloud) {
                     pointCloud.material.uniforms.threshold.value = params.threshold;
                     updateStatus(`阈值更新: ${params.threshold.toFixed(2)}`);
+                }
+                if (showSurface) {
+                    updateSurfaceMesh();
                 }
             });
             
@@ -480,6 +534,155 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
         }
         
+        // 计算标量场数据
+        function computeFieldData(compiledFn) {
+            const size = params.size;
+            const resolution = params.resolution;
+            const halfSize = size / 2;
+            const delta = size / (resolution - 1);
+            
+            // 创建三维数组存储场值
+            const data = new Float32Array(resolution * resolution * resolution);
+            
+            for (let x = 0; x < resolution; x++) {
+                const px = -halfSize + x * delta;
+                for (let y = 0; y < resolution; y++) {
+                    const py = -halfSize + y * delta;
+                    for (let z = 0; z < resolution; z++) {
+                        const pz = -halfSize + z * delta;
+                        
+                        // 计算场值
+                        const value = compiledFn.evaluate({x: px, y: py, z: pz});
+                        const index = x + y * resolution + z * resolution * resolution;
+                        data[index] = value;
+                    }
+                }
+            }
+            
+            return {
+                data: data,
+                resolution: resolution,
+                size: size
+            };
+        }
+        
+        // 更新等值面网格
+        function updateSurfaceMesh() {
+            if (!fieldData || !showSurface) return;
+
+            // 移除现有的等值面
+            if (surfaceMesh) {
+                scene.remove(surfaceMesh);
+                surfaceMesh.geometry.dispose();
+                surfaceMesh.material.dispose();
+                surfaceMesh = null;
+            }
+
+            try {
+                const resolution = fieldData.resolution;
+                const size = fieldData.size;
+                const threshold = params.threshold;
+
+                // 检查数据有效性
+                let hasValidData = false;
+                for (let i = 0; i < fieldData.data.length; i++) {
+                    if (!isNaN(fieldData.data[i]) && isFinite(fieldData.data[i])) {
+                        hasValidData = true;
+                        break;
+                    }
+                }
+
+                if (!hasValidData) {
+                    updateStatus("无法创建等值面: 数据无效");
+                    return;
+                }
+
+                // 创建自定义几何体
+                const geometry = new THREE.BufferGeometry();
+                
+                // 创建位置属性数组
+                const positions = [];
+                
+                // 网格间距
+                const step = size / (resolution - 1);
+                
+                // 遍历所有体素
+                for (let x = 0; x < resolution - 1; x++) {
+                    for (let y = 0; y < resolution - 1; y++) {
+                        for (let z = 0; z < resolution - 1; z++) {
+                            
+                            // 获取当前体素的8个角点值
+                            const values = [];
+                            const points = [];
+                            
+                            for (let dx = 0; dx <= 1; dx++) {
+                                for (let dy = 0; dy <= 1; dy++) {
+                                    for (let dz = 0; dz <= 1; dz++) {
+                                        const idx = (x + dx)   + 
+                                                    (y + dy) * resolution+ 
+                                                    (z + dz) * resolution* resolution;
+                                        
+                                        const value = fieldData.data[idx];
+                                        const px = -size/2 + (x + dx) * step;
+                                        const py = -size/2 + (y + dy) * step;
+                                        const pz = -size/2 + (z + dz) * step;
+                                        
+                                        values.push(value);
+                                        points.push(new THREE.Vector3(px, py, pz));
+                                    }
+                                }
+                            }
+                            
+                            // 简单实现：如果阈值在体素值范围内，则添加一个点
+                            let minVal = Infinity;
+                            let maxVal = -Infinity;
+                            for (const val of values) {
+                                if (val < minVal) minVal = val;
+                                if (val > maxVal) maxVal = val;
+                            }
+                            
+                            if (threshold >= minVal && threshold <= maxVal) {
+                                // 计算体素中心
+                                const centerX = -size/2 + (x + 0.5) * step;
+                                const centerY = -size/2 + (y + 0.5) * step;
+                                const centerZ = -size/2 + (z + 0.5) * step;
+                                
+                                // 添加一个点表示等值面
+                                positions.push(centerX, centerY, centerZ);
+                            }
+                        }
+                    }
+                }
+                
+                // 如果没有找到任何点
+                if (positions.length === 0) {
+                    updateStatus("无等值面: 当前阈值下没有曲面");
+                    return;
+                }
+                
+                // 设置几何体属性
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                
+                // 创建材质
+                const material = new THREE.PointsMaterial({
+                    color: 0x4a6fcb,
+                    size: 0.3,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                
+                // 创建点云表示等值面
+                surfaceMesh = new THREE.Points(geometry, material);
+                surfaceMesh.visible = showSurface;
+                scene.add(surfaceMesh);
+                
+                updateStatus(`等值面已更新 (${positions.length/3}点)`);
+            } catch (error) {
+                console.error("等值面生成错误:", error);
+                updateStatus("等值面生成错误: " + error.message);
+            }
+        }
+        
         // 可视化标量场
         function visualizeField() {
             if (isCalculating) return;
@@ -491,12 +694,19 @@
             showLoading(true);
             updateStatus("计算场函数中...");
             
-            // 清除现有的点云
+            // 清除现有的点云和等值面
             if (pointCloud) {
                 scene.remove(pointCloud);
                 pointCloud.geometry.dispose();
                 pointCloud.material.dispose();
                 pointCloud = null;
+            }
+            
+            if (surfaceMesh) {
+                scene.remove(surfaceMesh);
+                surfaceMesh.geometry.dispose();
+                surfaceMesh.material.dispose();
+                surfaceMesh = null;
             }
             
             // 使用setTimeout避免阻塞UI
@@ -527,8 +737,6 @@
                                 
                                 // 计算场值
                                 const value = compiledFn.evaluate({x: px, y: py, z: pz});
-                                
-                                // 添加顶点位置
                                 positions.push(px, py, pz);
                                 values.push(value);
                                 
@@ -543,10 +751,9 @@
                     }
                     
                     // 设置几何体属性
-                    // 在创建几何体时确保传递所有必要属性
-geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-geometry.setAttribute('color1', new THREE.Float32BufferAttribute(colors, 3));
-geometry.setAttribute('value', new THREE.Float32BufferAttribute(values, 1));  // 添加这个
+                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                    geometry.setAttribute('color1', new THREE.Float32BufferAttribute(colors, 3));
+                    geometry.setAttribute('value', new THREE.Float32BufferAttribute(values, 1));
                     
                     // 创建自定义着色器材质
                     const material = new THREE.ShaderMaterial({
@@ -579,7 +786,7 @@ geometry.setAttribute('value', new THREE.Float32BufferAttribute(values, 1));  //
                             
                             void main() {
                                 // 显示阈值附近的点
-                                if (abs(vValue - threshold) > 0.5) discard;
+                                if (abs(vValue - threshold) > 0.1) discard;
                                 
                                 gl_FragColor = vec4(vColor * colorIntensity, 1.0);
                                 
@@ -595,7 +802,16 @@ geometry.setAttribute('value', new THREE.Float32BufferAttribute(values, 1));  //
                     
                     // 创建点云
                     pointCloud = new THREE.Points(geometry, material);
+                    pointCloud.visible = showPoints;
                     scene.add(pointCloud);
+                    
+                    // 计算并存储场数据用于等值面
+                    fieldData = computeFieldData(compiledFn);
+                    
+                    // 如果需要显示等值面，则创建它
+                    if (showSurface) {
+                        updateSurfaceMesh();
+                    }
                     
                     showLoading(false);
                     updateStatus(`已渲染: ${resolution}³ 点 | ${functionString}`);
