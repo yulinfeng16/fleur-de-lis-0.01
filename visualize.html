@@ -786,7 +786,7 @@
                             
                             void main() {
                                 // 显示阈值附近的点
-                                if (abs(vValue - threshold) > 0.1) discard;
+                                if (abs(vValue - threshold) > 0.5) discard;
                                 
                                 gl_FragColor = vec4(vColor * colorIntensity, 1.0);
                                 
