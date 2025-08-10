@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
     <title>三维矢量场可视化工具</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
@@ -16,12 +16,20 @@
         }
         
         body {
+position:fixed;
             background: linear-gradient(135deg, #1a2a6c, #2c3e50, #4a235a);
             color: #fff;
             overflow: hidden;
-            height: 100vh;
             display: flex;
             flex-direction: column;
+transform: rotate(90deg);
+transform-origin: left top;
+width: 100vh;
+height: 100vw;
+overflow-x: hidden;
+position: absolute;
+top: 0;
+left: 100%;
         }
         
         header {
@@ -504,11 +512,6 @@
             let arrows = [];
             let grid, axes;
             let lastUpdateTime = 0;
-            screen.orientation.lock('landscape').then(function() {
-console.log("屏幕已锁定为横屏");
-}).catch(function(error) {
-console.error("锁定屏幕方向失败:", error);
-});
             // 初始化Three.js场景
             function init() {
                 updateLoadingMessage("正在创建场景...");
