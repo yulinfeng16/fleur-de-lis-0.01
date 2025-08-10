@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三维矢量场可视化工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@9.4.4/lib/browser/math.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50, #4a235a);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        #scene-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        .controls {
+            width: 350px;
+            background: rgba(25, 25, 35, 0.85);
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #4facfe;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(40, 40, 55, 0.8);
+            border: 1px solid rgba(100, 100, 150, 0.5);
+            border-radius: 4px;
+            color: white;
+            font-size: 0.95rem;
+        }
+        
+        textarea {
+            min-height: 80px;
+            font-family: monospace;
+        }
+        
+        input[type="range"] {
+            height: 8px;
+            -webkit-appearance: none;
+            background: rgba(100, 100, 150, 0.3);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4facfe;
+            cursor: pointer;
+        }
+        
+        button {
+            padding: 12px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn-primary {
+            width: 100%;
+        }
+        
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            max-width: 300px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-panel h3 {
+            margin-bottom: 10px;
+            color: #4facfe;
+        }
+        
+        .info-panel p {
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            flex-direction: column;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .math-keyboard {
+            background: rgba(35, 35, 50, 0.95);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            border: 1px solid rgba(100, 100, 150, 0.5);
+        }
+        
+        .keyboard-btn {
+            background: rgba(60, 60, 80, 0.8);
+            padding: 10px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .keyboard-btn:hover {
+            background: rgba(80, 80, 120, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        .keyboard-btn.operator {
+            background: rgba(79, 172, 254, 0.5);
+        }
+        
+        .keyboard-btn.function {
+            background: rgba(255, 105, 180, 0.5);
+        }
+        
+        .keyboard-row {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .keyboard-row .keyboard-btn {
+            flex: 1;
+        }
+        
+        .formula-examples {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(40, 40, 55, 0.5);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .formula-examples h4 {
+            margin-bottom: 8px;
+            color: #4facfe;
+        }
+        
+        .formula-examples ul {
+            padding-left: 20px;
+        }
+        
+        .formula-examples li {
+            margin-bottom: 5px;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 20;
+        }
+        
+        .status-bar.error {
+            background: rgba(200, 50, 50, 0.8);
+        }
+        
+        .performance-info {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 20;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                width: 100%;
+                max-height: 75%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--
+    <header>
+        <h1>三维矢量场可视化工具</h1>
+        <p class="subtitle">支持自定义矢量场公式，提供数学软键盘，包含点乘(·)和叉乘(×)操作</p>
+    </header>
+    -->
+    <div class="container">
+        <div id="scene-container">
+            <div class="loading" id="loading-screen">
+                <div class="spinner"></div>
+                <p>正在初始化场景...</p>
+            </div>
+            <div class="status-bar" id="status-bar"></div>
+            <div class="performance-info" id="performance-info"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h2>矢量场设置</h2>
+                
+                <div class="form-group">
+                    <label for="field-type">矢量场类型</label>
+                    <select id="field-type">
+                        <option value="circular">环形场</option>
+                        <option value="radial">辐射场</option>
+                        <option value="sink">汇点场</option>
+                        <option value="turbulent">湍流场</option>
+                        <option value="gravity">重力场</option>
+                        <option value="custom" selected>自定义场</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="arrow-density">箭头密度 (5)</label>
+                    <input type="range" id="arrow-density" min="1" max="10" value="5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="arrow-scale">箭头大小 (0.8)</label>
+                    <input type="range" id="arrow-scale" min="0.1" max="2" step="0.1" value="0.8">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h2>自定义矢量场公式</h2>
+                
+                <div class="form-group">
+                    <label for="formula-i">i 分量 (x方向)</label>
+                    <textarea id="formula-i">-z</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="formula-j">j 分量 (y方向)</label>
+                    <textarea id="formula-j">0</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="formula-k">k 分量 (z方向)</label>
+                    <textarea id="formula-k">x</textarea>
+                </div>
+                
+                <div class="math-keyboard">
+                    <div class="keyboard-btn" data-value="x">x</div>
+                    <div class="keyboard-btn" data-value="y">y</div>
+                    <div class="keyboard-btn" data-value="z">z</div>
+                    <div class="keyboard-btn" data-value=".">·</div>
+                    <div class="keyboard-btn" data-value="×">×</div>
+                    <div class="keyboard-btn" data-value="(">(</div>
+                    
+                    <div class="keyboard-btn" data-value=")">)</div>
+                    <div class="keyboard-btn" data-value="[">[</div>
+                    <div class="keyboard-btn" data-value="]">]</div>
+                    <div class="keyboard-btn" data-value=",">,</div>
+                    <div class="keyboard-btn" data-value="+">+</div>
+                    <div class="keyboard-btn" data-value="-">-</div>
+                    
+                    <div class="keyboard-btn" data-value="*">*</div>
+                    <div class="keyboard-btn" data-value="/">/</div>
+                    <div class="keyboard-btn" data-value="^">^</div>
+                    <div class="keyboard-btn" data-value="sin">sin</div>
+                    <div class="keyboard-btn" data-value="cos">cos</div>
+                    <div class="keyboard-btn" data-value="tan">tan</div>
+                    
+                    <div class="keyboard-btn" data-value="sqrt">sqrt</div>
+                    <div class="keyboard-btn" data-value="log">log</div>
+                    <div class="keyboard-btn" data-value="exp">exp</div>
+                    <div class="keyboard-btn" data-value="pi">π</div>
+                    <div class="keyboard-btn" data-value="dot">dot</div>
+                    <div class="keyboard-btn" data-value="cross">cross</div>
+                    
+                    <div class="keyboard-row">
+                        <div class="keyboard-btn" data-value="backspace">← 退格</div>
+                        <div class="keyboard-btn" data-value="clear">清空</div>
+                        <div class="keyboard-btn" data-value="apply">应用公式</div>
+                    </div>
+                </div>
+                
+                <div class="formula-examples">
+                    <h4>公式示例：</h4>
+                    <ul>
+                        <li>环形场: [-z, 0, x]</li>
+                        <li>辐射场: [x, y, z]</li>
+                        <li>重力场: [0, -1, 0]</li>
+                        <li>点乘: dot([x,y,z], [1,0,0])</li>
+                        <li>叉乘: cross([x,y,z], [0,1,0])</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h2>可视化选项</h2>
+                
+                <div class="form-group">
+                    <label for="color-scheme">颜色方案</label>
+                    <select id="color-scheme">
+                        <option value="rainbow">彩虹色</option>
+                        <option value="blue-red">蓝-红渐变</option>
+                        <option value="heat">热力图</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="show-grid">显示参考网格</label>
+                    <select id="show-grid">
+                        <option value="true">是</option>
+                        <option value="false">否</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="show-axes">显示坐标轴</label>
+                    <select id="show-axes">
+                        <option value="true">是</option>
+                        <option value="false">否</option>
+                    </select>
+                </div>
+                
+                <button id="apply-settings" class="btn-primary">应用设置</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="info-panel"><font size="1">
+        <h3>使用说明</h3>
+<p>• 横屏使用效果最佳。</p>
+        <p>• 鼠标拖拽：旋转视角</p>
+        <p>• 滚轮：缩放场景</p>
+        <p>• 右键拖拽：平移场景</p>
+        <p>• 使用自定义公式定义矢量场</p>
+        <p>• 点乘使用dot()函数，叉乘使用cross()函数</p>
+<p>• 调整参数后，必须到参数列表最下方点击“应用设置”才能看到最新效果！</p>
+    </font></div>
+
+    <script>
+        // 主应用程序
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const sceneContainer = document.getElementById('scene-container');
+            const loadingScreen = document.getElementById('loading-screen');
+            const applyBtn = document.getElementById('apply-settings');
+            const fieldType = document.getElementById('field-type');
+            const formulaI = document.getElementById('formula-i');
+            const formulaJ = document.getElementById('formula-j');
+            const formulaK = document.getElementById('formula-k');
+            const keyboard = document.querySelector('.math-keyboard');
+            const statusBar = document.getElementById('status-bar');
+            const perfInfo = document.getElementById('performance-info');
+            
+            // 场景变量
+            let scene, camera, renderer, controls;
+            let arrows = [];
+            let grid, axes;
+            let lastUpdateTime = 0;
+            screen.orientation.lock('landscape').then(function() {
+console.log("屏幕已锁定为横屏");
+}).catch(function(error) {
+console.error("锁定屏幕方向失败:", error);
+});
+            // 初始化Three.js场景
+            function init() {
+                updateLoadingMessage("正在创建场景...");
+                
+                // 创建场景
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0a0a1a);
+                //scene.fog = new THREE.Fog(0x0a0a1a, 15, 30);
+                
+                updateLoadingMessage("正在设置相机...");
+                
+                // 创建相机
+                camera = new THREE.PerspectiveCamera(
+                    60, 
+                    sceneContainer.clientWidth / sceneContainer.clientHeight, 
+                    0.1, 
+                    1000
+                );
+                camera.position.set(15, 10, 15);
+                
+                updateLoadingMessage("正在初始化渲染器...");
+                
+                // 创建渲染器
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                sceneContainer.appendChild(renderer.domElement);
+                
+                updateLoadingMessage("正在添加控件...");
+                
+                // 添加轨道控制
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                
+                updateLoadingMessage("正在设置光照...");
+                
+                // 添加环境光
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+                
+                // 添加方向光
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 20, 15);
+                scene.add(directionalLight);
+                
+                updateLoadingMessage("正在创建参考网格...");
+                
+                // 创建参考网格和坐标轴
+                createGridAndAxes();
+                
+                updateLoadingMessage("正在创建矢量场...");
+                
+                // 初始创建矢量场
+                setTimeout(() => {
+                    createVectorField('custom', 5, 0.8);
+                    
+                    // 隐藏加载屏幕
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        updateStatus("场景初始化完成");
+                    }, 300);
+                }, 100);
+                
+                // 开始动画循环
+                animate();
+                
+                // 添加窗口大小调整监听
+                window.addEventListener('resize', onWindowResize);
+            }
+            
+            // 更新加载消息
+            function updateLoadingMessage(message) {
+                if (loadingScreen) {
+                    loadingScreen.querySelector('p').textContent = message;
+                }
+            }
+            
+            // 状态更新函数
+            function updateStatus(message, isError = false) {
+                if (!statusBar) return;
+                
+                statusBar.textContent = message;
+                statusBar.className = "status-bar";
+                if (isError) {
+                    statusBar.classList.add("error");
+                }
+                
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    statusBar.textContent = "";
+                    statusBar.className = "status-bar";
+                }, 3000);
+            }
+            
+            // 更新性能信息
+            function updatePerformanceInfo(arrowsCount, time) {
+                if (!perfInfo) return;
+                
+                perfInfo.textContent = `箭头: ${arrowsCount} | 生成时间: ${time.toFixed(1)}ms`;
+            }
+            
+            // 创建参考网格和坐标轴
+            function createGridAndAxes() {
+                // 创建网格
+                grid = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
+                scene.add(grid);
+                
+                // 创建坐标轴
+                axes = new THREE.AxesHelper(5);
+                scene.add(axes);
+            }
+            
+            // 创建矢量场
+            function createVectorField(type, density, scale) {
+                const startTime = performance.now();
+                
+                // 移除现有的箭头
+                arrows.forEach(arrow => scene.remove(arrow));
+                arrows = [];
+                
+                // 根据密度计算网格大小
+                const gridSize = 30;
+                const spacing = gridSize / density;
+                
+                // 计算最大箭头数量
+                const maxArrows = Math.min(2000, Math.pow(density * 2, 3));
+                let arrowCount = 0;
+                
+                // 生成网格点并创建箭头
+                for (let x = -gridSize/2; x <= gridSize/2; x += spacing) {
+                    for (let y = -gridSize/2; y <= gridSize/2; y += spacing) {
+                        for (let z = -gridSize/2; z <= gridSize/2; z += spacing) {
+                            // 限制最大箭头数量
+                            if (arrowCount >= maxArrows) break;
+                            
+                            // 计算矢量场的值
+                            let vector = calculateVector(x, y, z, type);
+                            
+                            // 计算矢量大小
+                            const magnitude = vector.length();
+                            
+                            // 跳过零矢量
+                            if (magnitude < 0.001) continue;
+                            
+                            // 归一化矢量方向
+                            const direction = vector.normalize();
+                            
+                            // 根据矢量大小确定颜色
+                            const color = getColorForMagnitude(magnitude);
+                            
+                            // 创建箭头
+                            const arrow = new THREE.ArrowHelper(
+                                direction,
+                                new THREE.Vector3(x, y, z),
+                                magnitude * scale,
+                                color
+                            );
+                            
+                            // 添加到场景和数组
+                            scene.add(arrow);
+                            arrows.push(arrow);
+                            arrowCount++;
+                        }
+                    }
+                }
+                
+                const endTime = performance.now();
+                const timeTaken = endTime - startTime;
+                
+                updateStatus(`矢量场已生成: ${type} (${arrows.length}个箭头)`);
+                updatePerformanceInfo(arrows.length, timeTaken);
+            }
+            
+            // 计算特定位置的矢量
+            function calculateVector(x, y, z, type) {
+                // 根据类型返回不同的矢量场
+                switch(type) {
+                    case 'circular':
+                        // 绕Y轴的环形场
+                        return new THREE.Vector3(
+                            -z,
+                            0,
+                            x
+                        );
+                        
+                    case 'radial':
+                        // 从原点辐射的矢量场
+                        return new THREE.Vector3(
+                            x,
+                            y,
+                            z
+                        );
+                        
+                    case 'sink':
+                        // 指向原点的汇点场
+                        return new THREE.Vector3(
+                            -x,
+                            -y,
+                            -z
+                        );
+                        
+                    case 'turbulent':
+                        // 湍流场（带噪声）
+                        const turbulence = 0.5;
+                        return new THREE.Vector3(
+                            Math.sin(z) * turbulence,
+                            Math.cos(x) * turbulence,
+                            Math.sin(y) * turbulence
+                        );
+                        
+                    case 'gravity':
+                        // 模拟重力场（指向平面）
+                        return new THREE.Vector3(
+                            0,
+                            -1,
+                            0
+                        );
+                        
+                    case 'custom':
+                        // 自定义矢量场
+                        try {
+                            // 创建作用域
+                            const scope = { x, y, z };
+                            
+                            // 添加点乘和叉乘函数
+                            scope.dot = (a, b) => {
+                                if (a.length !== 3 || b.length !== 3) return 0;
+                                return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+                            };
+                            
+                            scope.cross = (a, b) => {
+                                if (a.length !== 3 || b.length !== 3) return [0, 0, 0];
+                                return [
+                                    a[1]*b[2] - a[2]*b[1],
+                                    a[2]*b[0] - a[0]*b[2],
+                                    a[0]*b[1] - a[1]*b[0]
+                                ];
+                            };
+                            
+                            // 解析公式
+                            const i = math.evaluate(formulaI.value, scope);
+                            const j = math.evaluate(formulaJ.value, scope);
+                            const k = math.evaluate(formulaK.value, scope);
+                            
+                            // 确保结果是数值
+                            const toNumber = (val) => {
+                                if (typeof val === 'number') return val;
+                                if (Array.isArray(val) && val.length > 0) return toNumber(val[0]);
+                                if (typeof val === 'boolean') return val ? 1 : 0;
+                                return 0;
+                            };
+                            
+                            // 返回矢量
+                            return new THREE.Vector3(
+                                toNumber(i),
+                                toNumber(j),
+                                toNumber(k)
+                            );
+                        } catch (e) {
+                            console.error("公式解析错误:", e);
+                            updateStatus(`公式错误: ${e.message}`, true);
+                            return new THREE.Vector3(0, 0, 0);
+                        }
+                        
+                    default:
+                        return new THREE.Vector3(0, 0, 0);
+                }
+            }
+            
+            // 根据矢量大小获取颜色
+            function getColorForMagnitude(magnitude) {
+                const maxMagnitude = 15;
+                const normalized = Math.min(magnitude / maxMagnitude, 1);
+                
+                // 彩虹色方案
+                const r = Math.min(255, Math.max(0, Math.floor(255 * normalized)));
+                const g = Math.min(255, Math.max(0, Math.floor(255 * (1 - Math.abs(2 * normalized - 1)))));
+                const b = Math.min(255, Math.max(0, Math.floor(255 * (1 - normalized))));
+                
+                return new THREE.Color(r / 255, g / 255, b / 255);
+            }
+            
+            // 动画循环
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // 更新控制器
+                controls.update();
+                
+                // 渲染场景
+                renderer.render(scene, camera);
+                
+                // 更新帧率显示
+                const now = performance.now();
+                if (now - lastUpdateTime > 1000) {
+                    const fps = Math.round(1000 / (now - lastUpdateTime));
+                    perfInfo.textContent = perfInfo.textContent.replace(/FPS: \d+/, `FPS: ${fps}`);
+                    lastUpdateTime = now;
+                }
+            }
+            
+            // 窗口大小变化处理
+            function onWindowResize() {
+                camera.aspect = sceneContainer.clientWidth / sceneContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight);
+            }
+            
+            // 应用设置
+            applyBtn.addEventListener('click', function() {
+                const fieldTypeVal = fieldType.value;
+                const arrowDensity = parseInt(document.getElementById('arrow-density').value);
+                const arrowScale = parseFloat(document.getElementById('arrow-scale').value);
+                const showGrid = document.getElementById('show-grid').value === 'true';
+                const showAxes = document.getElementById('show-axes').value === 'true';
+                
+                // 更新网格和坐标轴可见性
+                grid.visible = showGrid;
+                axes.visible = showAxes;
+                
+                // 更新滑块标签
+                document.querySelector('label[for="arrow-density"]').textContent = 
+                    `箭头密度 (${arrowDensity})`;
+                document.querySelector('label[for="arrow-scale"]').textContent = 
+                    `箭头大小 (${arrowScale.toFixed(1)})`;
+                
+                // 显示加载状态
+                loadingScreen.style.display = 'flex';
+                updateLoadingMessage("正在生成矢量场...");
+                
+                // 异步创建矢量场
+                setTimeout(() => {
+                    createVectorField(fieldTypeVal, arrowDensity, arrowScale);
+                    loadingScreen.style.display = 'none';
+                }, 50);
+            });
+            
+            // 数学键盘功能
+            let activeFormula = null;
+            
+            // 设置活动输入框
+            [formulaI, formulaJ, formulaK].forEach(input => {
+                input.addEventListener('focus', () => {
+                    activeFormula = input;
+                });
+            });
+            
+            // 键盘按钮点击处理
+            keyboard.addEventListener('click', (e) => {
+                if (!activeFormula) return;
+                
+                const btn = e.target.closest('.keyboard-btn');
+                if (!btn) return;
+                
+                const value = btn.dataset.value;
+                const textarea = activeFormula;
+                
+                switch(value) {
+                    case 'backspace':
+                        textarea.value = textarea.value.slice(0, -1);
+                        break;
+                    case 'clear':
+                        textarea.value = '';
+                        break;
+                    case 'apply':
+                        applyBtn.click();
+                        break;
+                    default:
+                        textarea.value += value;
+                }
+                
+                textarea.focus();
+            });
+            
+            // 矢量场类型变化时更新
+            fieldType.addEventListener('change', function() {
+                if (this.value !== 'custom') {
+                    applyBtn.click();
+                }
+            });
+            
+            // 初始化应用
+            init();
+        });
+    </script>
+</body>
+</html>
