@@ -1,0 +1,481 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleur-de-Lis | 数学与物理可视化平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-dark: #1a1a2e;
+            --secondary-dark: #16213e;
+            --accent-purple: #6a4c93;
+            --accent-gold: #d4af37;
+            --light-purple: #8a6dae;
+            --light-gold: #e6c567;
+            --text-light: #f0f0f0;
+            --text-muted: #a0a0a0;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary-dark));
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(106, 76, 147, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(106, 76, 147, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.1) 0%, transparent 30%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .logo-icon {
+            color: var(--accent-gold);
+            font-size: 36px;
+            margin-right: 15px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(to right, var(--accent-gold), var(--light-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 15px auto;
+            line-height: 1.6;
+        }
+
+        .tabs-container {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(106, 76, 147, 0.3);
+        }
+
+        .tabs-header {
+            display: flex;
+            background: rgba(22, 33, 62, 0.9);
+            border-bottom: 1px solid rgba(106, 76, 147, 0.4);
+            padding: 0 20px;
+        }
+
+        .tab-btn {
+            padding: 18px 30px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            opacity: 0.7;
+        }
+
+        .tab-btn i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .tab-btn:hover {
+            opacity: 1;
+            color: var(--accent-gold);
+        }
+
+        .tab-btn.active {
+            opacity: 1;
+            color: var(--accent-gold);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-gold));
+        }
+
+        .tabs-content {
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+        }
+
+        .tab-title i {
+            margin-right: 12px;
+        }
+
+        .tab-description {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 30px;
+            max-width: 800px;
+            color: var(--text-muted);
+        }
+
+        .iframe-container {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            height: 500px;
+            background: var(--primary-dark);
+            border: 1px solid rgba(106, 76, 147, 0.2);
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(26, 26, 46, 0.9);
+            z-index: 10;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(106, 76, 147, 0.3);
+            border-top: 5px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .visit-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--light-purple));
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(106, 76, 147, 0.4);
+        }
+
+        .visit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(106, 76, 147, 0.6);
+        }
+
+        .visit-btn i {
+            margin-left: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(106, 76, 147, 0.2);
+        }
+
+        .math-element {
+            position: absolute;
+            color: rgba(212, 175, 55, 0.07);
+            font-size: 8rem;
+            font-weight: bold;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .math-element-1 {
+            top: 10%;
+            left: 5%;
+            transform: rotate(-15deg);
+        }
+
+        .math-element-2 {
+            bottom: 15%;
+            right: 8%;
+            transform: rotate(25deg);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .tabs-header {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .tabs-content {
+                padding: 20px;
+            }
+            
+            .iframe-container {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .iframe-container {
+                height: 300px;
+            }
+            
+            .tab-title {
+                font-size: 1.5rem;
+            }
+            
+            .tab-description {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="math-element math-element-1">∫</div>
+    <div class="math-element math-element-2">∂</div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-crown logo-icon"></i>
+                <h1>Fleur-de-Lis 0.01</h1>
+            </div>
+            <p class="subtitle">一个专注于数学和物理可视化的开源项目，通过交互式图表和模拟演示复杂概念，促进STEM教育</p>
+        </header>
+        
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="phy-kb">
+                    <i class="fas fa-atom"></i> 物理键盘
+                </button>
+                <button class="tab-btn" data-tab="visualize">
+                    <i class="fas fa-chart-line"></i> 标量场可视化工具
+                </button>
+                <button class="tab-btn" data-tab="avis">
+                    <i class="fas fa-eye"></i> 矢量场可视化工具
+                </button>
+            </div>
+            
+            <div class="tabs-content">
+                <!-- 物理知识库 -->
+                <div class="tab-content active" id="phy-kb">
+                    <h2 class="tab-title"><i class="fas fa-atom"></i> 物理键盘</h2>
+                    <p class="tab-description">
+                        综合性的物理公式输入器，涵盖经典力学、电磁学、量子物理等领域。通过Latex展示公式并包含公式案例。该页面适合学生和教师作为教学辅助工具使用。
+                    </p>
+                    <div class="iframe-container">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div class="loading-text">正在加载物理键盘...</div>
+                        </div>
+                        <iframe src="https://yulinfeng16.github.io/fleur-de-lis-0.01/phykb.html" title="物理键盘"></iframe>
+                    </div>
+                    <a href="https://yulinfeng16.github.io/fleur-de-lis-0.01/phykb.html" class="visit-btn" target="_blank">
+                        访问完整页面 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+                
+                <!-- 可视化工具 -->
+                <div class="tab-content" id="visualize">
+                    <h2 class="tab-title"><i class="fas fa-chart-line"></i> 数学可视化工具</h2>
+                    <p class="tab-description">
+                        标量场可视化工具，支持3D图形可视化。用户可以输入自定义函数，实时观察图形变化，调整参数体验图形之美。
+                    </p>
+                    <div class="iframe-container">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div class="loading-text">正在加载可视化工具...</div>
+                        </div>
+                        <iframe src="https://yulinfeng16.github.io/fleur-de-lis-0.01/visualize.html" title="标量场可视化工具"></iframe>
+                    </div>
+                    <a href="https://yulinfeng16.github.io/fleur-de-lis-0.01/visualize.html" class="visit-btn" target="_blank">
+                        访问完整页面 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+                
+                <!-- AVIS分析系统 -->
+                <div class="tab-content" id="avis">
+                    <h2 class="tab-title"><i class="fas fa-eye"></i> 矢量场可视化</h2>
+                    <p class="tab-description">
+                        矢量场可视化，便捷观察场形辅助理解。
+                    </p>
+                    <div class="iframe-container">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <div class="loading-text">正在加载avis...</div>
+                        </div>
+                        <iframe src="https://yulinfeng16.github.io/fleur-de-lis-0.01/avis.html" title="AVIS"></iframe>
+                    </div>
+                    <a href="https://yulinfeng16.github.io/fleur-de-lis-0.01/avis.html" class="visit-btn" target="_blank">
+                        访问完整页面 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Fleur-de-Lis 0.01 数学与物理可视化平台</p>
+            <p>开源项目</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const iframes = document.querySelectorAll('iframe');
+            
+            // 设置初始活动标签
+            let currentTab = 'phy-kb';
+            
+            // 添加标签切换事件
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 更新按钮状态
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新内容显示
+                    tabContents.forEach(content => {
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                            currentTab = tabId;
+                        } else {
+                            content.classList.remove('active');
+                        }
+                    });
+                });
+            });
+            
+            // 模拟加载完成（实际项目中不需要，这里仅用于演示）
+            setTimeout(() => {
+                document.querySelectorAll('.loading').forEach(loader => {
+                    loader.style.display = 'none';
+                });
+            }, 2000);
+            
+            // 添加微积分符号动画
+            const mathElements = document.querySelectorAll('.math-element');
+            mathElements.forEach(el => {
+                el.style.opacity = '0.1';
+                el.animate(
+                    [
+                        { transform: 'scale(1)', opacity: 0.1 },
+                        { transform: 'scale(1.1)', opacity: 0.15 },
+                        { transform: 'scale(1)', opacity: 0.1 }
+                    ],
+                    {
+                        duration: 8000,
+                        iterations: Infinity
+                    }
+                );
+            });
+        });
+    </script>
+</body>
+</html>
